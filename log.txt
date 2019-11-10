@@ -1,0 +1,3 @@
+18:40:08: New LogFile created
+          
+18:40:10: Saved Table "((A->B)&(B->C))->(A->C)" as: test.jpg

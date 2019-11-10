@@ -1,0 +1,1 @@
+table:((A->B)&(B->C))->(A->C):test.jpg
