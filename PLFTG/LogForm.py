@@ -4,6 +4,7 @@ import pygame
 import traceback
 from PIL import Image
 from io import BytesIO
+import Logger
 
 
 NEGATION = "¬"
@@ -261,6 +262,7 @@ class LogicFormula(object):
         otherChars = []
         exceptedChars = [NEGATION, AND, OR, EQUAL, IMPLIES, "(", ")"]
         form = formula.replace(" ", "").upper()
+        self.log = Logger.Log()
         split = list(form)
         for C in split:
                 if not exceptedChars.__contains__(C):
@@ -283,6 +285,11 @@ class LogicFormula(object):
             self.variables[C] = var
             self.vars.append(var)
         self.expression = self.getExpression(form)
+        self.log.close()
+        if len(self.expressions) > 0:
+            self.expressions[-1] = self.expression
+        else:
+            self.expressions = [self.expression]
 
     def getTabel(self) -> List[List[str]]:
         out = []
@@ -290,6 +297,14 @@ class LogicFormula(object):
         exprs = self.expressions
         for i in range(0, 2 ** len(self.variables)+1):
             out.append(list())
+
+        # --===<  Bubbel Sort  >===--
+        for i1 in range(1, len(v_keys)+1):
+            for i2 in range(i1, len(v_keys)):
+                if v_keys[i2-1] > v_keys[i2]:
+                    temp = v_keys[i2-1]
+                    v_keys[i2-1] = v_keys[i2]
+                    v_keys[i2] = temp
 
         def boolToStr(bool: bool) -> str:
             if bool:
@@ -321,7 +336,6 @@ class LogicFormula(object):
 
     def makeTabel(self):
         name = self.formula + ".txt"
-        v_keys = list(self.variables.keys())
         file = open(name, 'w', encoding="utf-8")
         table = self.getTabel()
 
@@ -337,6 +351,7 @@ class LogicFormula(object):
 
     def getExpression(self, formula: str) -> BaseExpression:
         #print("get Expression for:", formula)
+        self.log.print(formula)
         if self.variables.__contains__(formula):
             return self.variables.get(formula)
         i = 0
@@ -363,7 +378,7 @@ class LogicFormula(object):
                 neg = NegativExpression(NEGATION + split[1], self.getExpression(split[1]))
                 i = 2
         if neg is not None:
-            self.expressions.append(neg)
+            #self.expressions.append(neg)
             if i < len(split)-1:
                 link = split[i]
                 b = ""
@@ -379,7 +394,7 @@ class LogicFormula(object):
                         b = b + C
                     else:
                         b = b + C
-                    if count == 0:
+                    if count == 0 and C != NEGATION:
                         break
                     i = i+1
                 expr = LinkedExpression(neg.getForm()+link+b, neg, link, self.getExpression(b))
